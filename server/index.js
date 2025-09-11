@@ -40,6 +40,7 @@ app.use('/auth', authRoutes);
 const campaignRoutes = require('./routes/campaignRoutes');
 app.use('/api/campaigns', campaignRoutes);
 
+
 const ingestionRoutes = require('./routes/ingestionRoutes');
 app.use('/api/ingest', ingestionRoutes);
 

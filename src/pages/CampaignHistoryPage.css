@@ -1,0 +1,49 @@
+.history-container {
+  width: 100%;
+  max-width: 900px;
+  display: flex; /* Add this */
+  flex-direction: column; /* Add this */
+  align-items: center; /* Add this */
+}
+.campaign-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.campaign-item {
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.campaign-details h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+.campaign-details p {
+  margin: 0;
+  color: #a0a0a0;
+}
+
+.campaign-stats {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.campaign-stats span:first-child {
+  color: #28a745; /* Green for sent */
+}
+
+.campaign-stats span:last-child {
+  color: #dc3545; /* Red for failed */
+}

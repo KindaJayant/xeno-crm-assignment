@@ -1,36 +1,55 @@
+// server/routes/campaignRoutes.js
 const express = require('express');
 const router = express.Router();
-const Campaign = require('../models/Campaign');
-const { findAudience, sendCommunication } = require('../services/campaignProcessor');
 
-// POST /api/campaigns/preview
+const Campaign = require('../models/Campaign');
+
+// Import exactly from the server/services path
+const svcPath = require.resolve('../services/campaignProcessor');
+const svc = require('../services/campaignProcessor');
+
+// Optional debug (uncomment for one run to confirm):
+// console.log('[resolved campaignProcessor]', svcPath, 'exports:', Object.keys(svc));
+
+// Guard: fail fast if we didn’t get the right exports
+if (typeof svc.findAudience !== 'function' || typeof svc.sendCommunication !== 'function') {
+  throw new Error('campaignProcessor must export findAudience and sendCommunication');
+}
+
+/**
+ * POST /api/campaigns/preview
+ */
 router.post('/preview', async (req, res) => {
   try {
     const { rules, conjunction } = req.body;
     if (!Array.isArray(rules) || rules.length === 0) {
       return res.status(400).json({ message: 'Rules must be a non-empty array.' });
     }
-
-    const audience = await findAudience(rules, conjunction);
-    res.status(200).json({ audienceSize: audience.length });
+    const audience = await svc.findAudience(rules, conjunction);
+    return res.status(200).json({ audienceSize: audience.length });
   } catch (error) {
     console.error('Error in preview route:', error);
-    res.status(500).json({ message: 'Server error during preview' });
+    return res.status(500).json({ message: 'Server error during preview' });
   }
 });
 
-// GET /api/campaigns
-router.get('/', async (req, res) => {
+/**
+ * GET /api/campaigns
+ */
+router.get('/', async (_req, res) => {
   try {
     const campaigns = await Campaign.find().sort({ createdAt: -1 });
-    res.status(200).json(campaigns);
+    return res.status(200).json(campaigns);
   } catch (error) {
     console.error('Error fetching campaigns:', error);
-    res.status(500).json({ message: 'Server error fetching campaigns' });
+    return res.status(500).json({ message: 'Server error fetching campaigns' });
   }
 });
 
-// POST /api/campaigns (create + launch)
+/**
+ * POST /api/campaigns
+ * Create a campaign and kick off the delivery process.
+ */
 router.post('/', async (req, res) => {
   try {
     const { rules, conjunction } = req.body;
@@ -39,29 +58,40 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Rules must be a non-empty array.' });
     }
 
-    // Create campaign
-    const audience = await findAudience(rules, conjunction);
-    const newCampaign = new Campaign({
+    // 1) Compute audience
+    const audience = await svc.findAudience(rules, conjunction);
+
+    // 2) Save campaign with computed audience size
+    const campaign = await new Campaign({
       rules,
       conjunction,
       audienceSize: audience.length,
-    });
-    await newCampaign.save();
+    }).save();
 
-    console.log(`Found ${audience.length} customers for campaign ${newCampaign._id}. Starting communication process...`);
+    console.log(
+      `Found ${audience.length} customers for campaign ${campaign._id}. Starting communication process...`
+    );
 
-    // Start communication process
-    for (const customer of audience) {
-      sendCommunication(customer, newCampaign);
-    }
+    // 3) Kick off sends concurrently; we don’t block the API response
+    (async () => {
+      try {
+        await Promise.allSettled(
+          audience.map((customer) => svc.sendCommunication(customer, campaign))
+        );
+      } catch (err) {
+        console.error('Unhandled error during sendCommunication batch:', err);
+      }
+    })();
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Campaign created and delivery process started.',
-      campaign: newCampaign,
+      campaign,
     });
   } catch (error) {
     console.error('Error creating campaign:', error);
-    res.status(400).json({ message: 'Error creating campaign', error: error.message });
+    return res
+      .status(400)
+      .json({ message: 'Error creating campaign', error: error.message });
   }
 });
 
