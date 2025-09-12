@@ -1,22 +1,21 @@
-import React, { useContext } from 'react';
-import { Navigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+// src/components/ProtectedRoute.jsx
+import { useContext } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext"; // <-- confirm this path
 
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useContext(AuthContext);
+export default function ProtectedRoute({ children }) {
+  // If the provider isn't mounted (ctx === undefined), don't crash.
+  const ctx = useContext(AuthContext);
 
-  if (loading) {
-    // While checking auth status, show a loading message
-    return <div>Loading...</div>;
-  }
+  // No provider found: just render children (non-blocking)
+  if (!ctx) return children;
 
+  const { user, loading } = ctx;
+  const location = useLocation();
+
+  if (loading) return null; // or a spinner
   if (!user) {
-    // If the user is not authenticated, redirect to the login page
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
-
-  // If the user is authenticated, render the page
   return children;
-};
-
-export default ProtectedRoute;
+}

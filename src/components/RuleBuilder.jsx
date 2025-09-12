@@ -1,3 +1,4 @@
+// client/src/components/RuleBuilder.jsx
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import './RuleBuilder.css';

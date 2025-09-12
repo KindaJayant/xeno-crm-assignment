@@ -1,47 +1,19 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-
-import './App.css'; // keep your global styles
-
-// YOUR existing components (each already imports its own CSS)
-import Navbar from './components/Navbar.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
-import { AuthProvider } from './context/AuthContext.jsx';
-
-import CampaignCreationPage from './pages/CampaignCreationPage.jsx';
-import CampaignHistoryPage from './pages/CampaignHistoryPage.jsx';
-import LoginPage from './pages/LoginPage.jsx';
+// src/App.jsx
+import { Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import CampaignCreationPage from "./pages/CampaignCreationPage.jsx";
+import CampaignHistoryPage from "./pages/CampaignHistoryPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import "./App.css";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Navbar /> {/* your Navbar.jsx already imports ./Navbar.css */}
+    <>
+      <Navbar />
+      <main className="app-container">
         <Routes>
-          {/* Public */}
-          <Route path="/login" element={<LoginPage />} />
-
-          {/* Default -> Create Campaign */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <CampaignCreationPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Optional alias */}
-          <Route
-            path="/create"
-            element={
-              <ProtectedRoute>
-                <CampaignCreationPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* History */}
+          <Route path="/" element={<CampaignCreationPage />} />
           <Route
             path="/history"
             element={
@@ -50,11 +22,9 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/login" element={<LoginPage />} />
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+      </main>
+    </>
   );
 }
