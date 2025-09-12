@@ -3,7 +3,6 @@ const express = require("express");
 const router = express.Router();
 
 const Groq = require("groq-sdk");
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // Keep these perfectly aligned with your processor
 const ALLOWED_FIELDS = new Set(["spend", "visits"]);
@@ -29,6 +28,17 @@ function normalizePayload(payload) {
     .filter((r) => ALLOWED_FIELDS.has(r.field) && ALLOWED_OPS.has(r.operator));
 
   return out;
+}
+
+// Lazy init to avoid reading env before dotenv loads
+function getGroq() {
+  const key = process.env.GROQ_API_KEY;
+  if (!key) {
+    throw new Error(
+      "GROQ_API_KEY is missing. Check server/.env and dotenv config in server/index.js"
+    );
+  }
+  return new Groq({ apiKey: key });
 }
 
 /**
@@ -65,6 +75,8 @@ Input: "visited less than 5 times or spent < 500"
 Output:
 {"conjunction":"OR","rules":[{"field":"visits","operator":"<","value":"5"},{"field":"spend","operator":"<","value":"500"}]}
 `.trim();
+
+    const groq = getGroq(); // ← instantiate here, after dotenv loaded
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
