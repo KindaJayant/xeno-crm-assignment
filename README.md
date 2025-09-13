@@ -98,7 +98,7 @@ flowchart TD
         B --> J[Communication Logs DB]
         K[Auth Routes] --> L[Google OAuth]
     end
-
+```
 
 ##           ⚙️ Local Setup
 
