@@ -85,32 +85,20 @@ This project demonstrates **customer segmentation, personalized campaign deliver
 
 ```mermaid
 flowchart TD
-    subgraph Frontend [React App]
-        UI[Campaign Creation Page]
-        AI[AI Rule Prompt Box]
-        Hist[Campaign History Page]
-        Login[Login Page]
+    subgraph UI [Frontend - React]
+        A[Campaign Creation Page] -->|Rules, Preview, Save| B[Campaigns API]
+        C[AI Prompt Box] -->|Prompt| D[AI API]
+        E[History Page] -->|Fetch Campaigns| B
     end
 
-    subgraph Backend [Express + MongoDB]
-        Ingest[/Ingestion APIs/]
-        Campaigns[/Campaign APIs/]
-        Logs[/Delivery Receipt API/]
-        Auth[/Google OAuth/]
-        AIAPI[/AI Routes (Groq)/]
+    subgraph Backend [Express + Node.js]
+        B --> F[Campaigns DB]
+        D --> G[Groq API]
+        H[Ingestion API] --> I[Customers DB]
+        B --> J[Communication Logs DB]
+        K[Auth Routes] --> L[Google OAuth]
     end
 
-    DB[(MongoDB)]
-    Groq[(Groq LLM API)]
-
-    UI -->|Rules, Preview, Save| Campaigns
-    AI -->|Prompt| AIAPI
-    Hist -->|GET /api/campaigns| Campaigns
-    Ingest --> DB
-    Campaigns --> DB
-    Logs --> DB
-    AIAPI --> Groq
-    Auth --> Backend
 
 ##           ⚙️ Local Setup
 
